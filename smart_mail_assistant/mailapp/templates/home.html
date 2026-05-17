@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Mail Reminder Assistant</title>
+</head>
+<body>
+
+<h1>Important Emails</h1>
+
+{% if mails %}
+    <ul>
+        {% for mail in mails %}
+            <li>{{ mail }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No Important Mails Found</p>
+{% endif %}
+
+</body>
+</html>
