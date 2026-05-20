@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 
 from google.auth.transport.requests import Request
@@ -6,11 +7,14 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+# Gmail permission
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
-BOT_TOKEN = "YOUR_BOT_TOKEN"
-CHAT_ID = "YOUR_CHAT_ID"
+# Telegram Bot Details
+BOT_TOKEN = "8960482129:AAElcJqusehADIDG4hb5MCg1MwehFKpgf6Q"
+CHAT_ID = "7599193207"
 
+# Important keywords
 keywords = [
     'internship',
     'placement',
@@ -32,9 +36,11 @@ keywords = [
     'engineer'
 ]
 
+# Duplicate notifications avoid cheyadaniki
 sent_messages = set()
 
 
+# Telegram message function
 def send_telegram_message(message):
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -49,23 +55,20 @@ def send_telegram_message(message):
     print(response.text)
 
 
+# Gmail checking function
 def read_emails():
 
     creds = None
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    token_path = os.path.join(BASE_DIR, 'token.json')
-
-    credentials_path = os.path.join(BASE_DIR, 'credentials.json')
-
-    if os.path.exists(token_path):
+    # token.json already unte
+    if os.path.exists('token.json'):
 
         creds = Credentials.from_authorized_user_file(
-            token_path,
+            'token.json',
             SCOPES
         )
 
+    # login required ayithe
     if not creds or not creds.valid:
 
         if creds and creds.expired and creds.refresh_token:
@@ -75,17 +78,19 @@ def read_emails():
         else:
 
             flow = InstalledAppFlow.from_client_secrets_file(
-                credentials_path,
+                'credentials.json',
                 SCOPES
             )
 
             creds = flow.run_local_server(port=0)
 
-        with open(token_path, 'w') as token:
+        with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
+    # Gmail service
     service = build('gmail', 'v1', credentials=creds)
 
+    # unread mails fetch
     results = service.users().messages().list(
         userId='me',
         labelIds=['UNREAD'],
@@ -94,7 +99,9 @@ def read_emails():
 
     messages = results.get('messages', [])
 
-    important_mails = []
+    if not messages:
+
+        print("No unread mails found")
 
     for message in messages:
 
@@ -108,6 +115,7 @@ def read_emails():
         subject = ''
         sender = ''
 
+        # subject and sender extract
         for header in headers:
 
             if header['name'] == 'Subject':
@@ -118,13 +126,13 @@ def read_emails():
 
         print("Subject:", subject)
 
+        # keyword checking
         for word in keywords:
 
             if word.lower() in subject.lower():
 
+                # duplicate avoid
                 if subject not in sent_messages:
-
-                    important_mails.append(subject)
 
                     send_telegram_message(
                         f"IMPORTANT MAIL ALERT\n\n"
@@ -138,4 +146,16 @@ def read_emails():
 
                 break
 
-    return important_mails
+
+# Main program
+if __name__ == "__main__":
+
+    while True:
+
+        print("\nChecking for new mails...\n")
+
+        read_emails()
+
+        print("\nWaiting for 60 seconds...\n")
+
+        time.sleep(60)
