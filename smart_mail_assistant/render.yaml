@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: smart-mail-assistant
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn smart_mail_assistant.wsgi:application"
