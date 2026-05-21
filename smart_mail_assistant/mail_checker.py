@@ -1,6 +1,14 @@
 import os
-import time
 import requests
+
+# GitHub Secrets nundi files create cheyadam
+if os.getenv("GMAIL_CREDENTIALS"):
+    with open("credentials.json", "w", encoding="utf-8") as f:
+        f.write(os.getenv("GMAIL_CREDENTIALS"))
+
+if os.getenv("GMAIL_TOKEN"):
+    with open("token.json", "w", encoding="utf-8") as f:
+        f.write(os.getenv("GMAIL_TOKEN"))
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -10,9 +18,9 @@ from googleapiclient.discovery import build
 # Gmail permission
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
-# Telegram Bot Details
-BOT_TOKEN = "8960482129:AAElcJqusehADIDG4hb5MCg1MwehFKpgf6Q"
-CHAT_ID = "7599193207"
+# Telegram Details from GitHub Secrets
+BOT_TOKEN = os.getenv("8960482129:AAElcJqusehADIDG4hb5MCg1MwehFKpgf6Q")
+CHAT_ID = os.getenv("7599193207")
 
 # Important keywords
 keywords = [
@@ -40,7 +48,6 @@ keywords = [
 sent_messages = set()
 
 
-# Telegram message function
 def send_telegram_message(message):
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -55,12 +62,10 @@ def send_telegram_message(message):
     print(response.text)
 
 
-# Gmail checking function
 def read_emails():
 
     creds = None
 
-    # token.json already unte
     if os.path.exists('token.json'):
 
         creds = Credentials.from_authorized_user_file(
@@ -68,7 +73,6 @@ def read_emails():
             SCOPES
         )
 
-    # login required ayithe
     if not creds or not creds.valid:
 
         if creds and creds.expired and creds.refresh_token:
@@ -87,10 +91,8 @@ def read_emails():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
-    # Gmail service
     service = build('gmail', 'v1', credentials=creds)
 
-    # unread mails fetch
     results = service.users().messages().list(
         userId='me',
         labelIds=['UNREAD'],
@@ -100,8 +102,8 @@ def read_emails():
     messages = results.get('messages', [])
 
     if not messages:
-
         print("No unread mails found")
+        return
 
     for message in messages:
 
@@ -115,7 +117,6 @@ def read_emails():
         subject = ''
         sender = ''
 
-        # subject and sender extract
         for header in headers:
 
             if header['name'] == 'Subject':
@@ -126,12 +127,10 @@ def read_emails():
 
         print("Subject:", subject)
 
-        # keyword checking
         for word in keywords:
 
             if word.lower() in subject.lower():
 
-                # duplicate avoid
                 if subject not in sent_messages:
 
                     send_telegram_message(
@@ -147,15 +146,10 @@ def read_emails():
                 break
 
 
-# Main program
 if __name__ == "__main__":
 
-    while True:
+    print("\nChecking for new mails...\n")
 
-        print("\nChecking for new mails...\n")
+    read_emails()
 
-        read_emails()
-
-        print("\nWaiting for 60 seconds...\n")
-
-        time.sleep(60)
+    print("\nCompleted Successfully\n")
