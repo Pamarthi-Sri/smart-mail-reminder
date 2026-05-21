@@ -32,4 +32,4 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           GMAIL_CREDENTIALS: ${{ secrets.GMAIL_CREDENTIALS }}
           GMAIL_TOKEN: ${{ secrets.GMAIL_TOKEN }}
-        run: python mail_checker.py
+        run: python smart_mail_assistant/mail_checker.py
