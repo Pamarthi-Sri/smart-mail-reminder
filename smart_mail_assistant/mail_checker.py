@@ -1,11 +1,12 @@
 import os
 import requests
 
-# GitHub Secrets nundi files create cheyadam
+# Create credentials.json from GitHub Secret
 if os.getenv("GMAIL_CREDENTIALS"):
     with open("credentials.json", "w", encoding="utf-8") as f:
         f.write(os.getenv("GMAIL_CREDENTIALS"))
 
+# Create token.json from GitHub Secret
 if os.getenv("GMAIL_TOKEN"):
     with open("token.json", "w", encoding="utf-8") as f:
         f.write(os.getenv("GMAIL_TOKEN"))
@@ -18,9 +19,9 @@ from googleapiclient.discovery import build
 # Gmail permission
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
-# Telegram Details from GitHub Secrets
-BOT_TOKEN = os.getenv("8960482129:AAElcJqusehADIDG4hb5MCg1MwehFKpgf6Q")
-CHAT_ID = os.getenv("7599193207")
+# Telegram Secrets from GitHub
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
 # Important keywords
 keywords = [
@@ -44,11 +45,14 @@ keywords = [
     'engineer'
 ]
 
-# Duplicate notifications avoid cheyadaniki
+# Avoid duplicate notifications
 sent_messages = set()
 
 
 def send_telegram_message(message):
+
+    print("BOT_TOKEN loaded:", BOT_TOKEN is not None)
+    print("CHAT_ID loaded:", CHAT_ID is not None)
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
@@ -67,7 +71,6 @@ def read_emails():
     creds = None
 
     if os.path.exists('token.json'):
-
         creds = Credentials.from_authorized_user_file(
             'token.json',
             SCOPES
